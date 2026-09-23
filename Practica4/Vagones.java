@@ -61,7 +61,7 @@ public class Vagones {
         }
 
         int[] result = Result.detectarZonaAjuste(vagones);
-        
+
         for (int i = 0; i < result.length; i++) {
             System.out.print(result[i]);
             if (i != result.length - 1) {
