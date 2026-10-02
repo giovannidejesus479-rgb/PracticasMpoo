@@ -6,12 +6,17 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.regex.*;
 
+// 1. Declaración del enum
+enum TipoVehiculo { 
+    MOTOCICLETA, AUTOMOVIL, CAMIONETA, ELECTRICO 
+}
+
 class Result {
 
-    //agregamos esta funcion para adaptar el formato de la fecha ingresado por el usuario
+    // agregamos esta funcion para adaptar el formato de la fecha ingresado por el usuario
     private static String formatearFecha(String fecha) {
         if (fecha == null) return "";
-        fecha = fecha.trim(); //limpia los posibles espacios al principio o al final de la cadena
+        fecha = fecha.trim(); // limpia los posibles espacios al principio o al final de la cadena
 
         if (fecha.length() == 8 && !fecha.contains("/")) {
             String dia = fecha.substring(0, 2);
@@ -22,13 +27,13 @@ class Result {
         return fecha;
     }
 
-    //agregamos esta función para adaptar el formato de la hora
+    // agregamos esta función para adaptar el formato de la hora
     private static String formatearHora(String hora) {
         if (hora == null) return "";
         hora = hora.trim();
         // Si no contiene ":" procedemos a formatearlo
         if (!hora.contains(":")) {
-            //si la cadena correspondiente a la hora es igual a 3 agregamos un 0 al inicio para que coincida con el formato de hora
+            // si la cadena correspondiente a la hora es igual a 3 agregamos un 0 al inicio para que coincida con el formato de hora
             if (hora.length() == 3) {
                 hora = "0" + hora;
             }
@@ -41,10 +46,18 @@ class Result {
 
     public static String calcularEstancia(String tipoVehiculo, String fechaEntrada, String horaEntrada, String fechaSalida, String horaSalida) {
         try {
-            //Convertimos el tipo de vehículo a MAYÚSCULAS
+            // Convertimos el tipo de vehículo a MAYÚSCULAS
             tipoVehiculo = tipoVehiculo != null ? tipoVehiculo.trim().toUpperCase() : "";
             
-            //Adaptamos fechas y horas
+            // 2. Mapeo del String al Enum para validación
+            TipoVehiculo tipoEnum;
+            try {
+                tipoEnum = TipoVehiculo.valueOf(tipoVehiculo);
+            } catch (IllegalArgumentException | NullPointerException e) {
+                return "INVALID";
+            }
+            
+            // Adaptamos fechas y horas
             fechaEntrada = formatearFecha(fechaEntrada);
             horaEntrada = formatearHora(horaEntrada);
             fechaSalida = formatearFecha(fechaSalida);
@@ -68,25 +81,26 @@ class Result {
             
             long diffMillis = calSalida.getTimeInMillis() - calEntrada.getTimeInMillis();
             double diffMinutes = (double) diffMillis / (1000 * 60);
-            long horasCobradas = (long) Math.ceil(diffMinutes / 60.0);//Math.ceil redondea un número decimal hacia arriba. Nota: en esta linea se realizó un cast ya que Math.ceil() devuelve un double
+            long horasCobradas = (long) Math.ceil(diffMinutes / 60.0); // Math.ceil redondea un número decimal hacia arriba.
             
             double tarifaHora = 0;
             double tarifaMax24h = 0;
             
-            switch (tipoVehiculo) {
-                case "MOTOCICLETA":
+            // 3. Evaluación del Switch mediante el Enum
+            switch (tipoEnum) {
+                case MOTOCICLETA:
                     tarifaHora = 15;
                     tarifaMax24h = 100;
                     break;
-                case "AUTOMOVIL":
+                case AUTOMOVIL:
                     tarifaHora = 25;
                     tarifaMax24h = 180;
                     break;
-                case "CAMIONETA":
+                case CAMIONETA:
                     tarifaHora = 35;
                     tarifaMax24h = 250;
                     break;
-                case "ELECTRICO":
+                case ELECTRICO:
                     tarifaHora = 20;
                     tarifaMax24h = 150;
                     break;
@@ -97,7 +111,7 @@ class Result {
             long bloques24h = horasCobradas / 24;
             long horasRestantes = horasCobradas % 24;
             
-            double costoBase = (bloques24h * tarifaMax24h) + Math.min(horasRestantes * tarifaHora, tarifaMax24h);//Math.min compara dos numeros y devuelve el menor de ellos.
+            double costoBase = (bloques24h * tarifaMax24h) + Math.min(horasRestantes * tarifaHora, tarifaMax24h);
             double costoFinal = costoBase;
             
             int diaE = calEntrada.get(Calendar.DAY_OF_WEEK);
@@ -117,7 +131,8 @@ class Result {
                 costoFinal *= 1.15;
             }
             
-            if (tipoVehiculo.equals("ELECTRICO")){
+            // 4. Verificación de descuento mediante el Enum
+            if (tipoEnum == TipoVehiculo.ELECTRICO){
                 costoFinal *= 0.90;
             }
             
@@ -144,7 +159,7 @@ public class Estacionamiento {
     public static void main(String[] args) throws IOException {
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
         
-        //solicita al usuario la informacion para realizar el cobro correspondiente
+        // solicita al usuario la informacion para realizar el cobro correspondiente
         System.out.println("Ingresa tipo de vehiculo: ");
         String tipoVehiculo = bufferedReader.readLine();
 
